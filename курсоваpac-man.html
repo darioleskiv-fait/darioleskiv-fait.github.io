@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-man</title>
+    <style>
+        canvas {
+            border: 1px solid black; /* Додаємо чорну рамку до canvas для видимості */
+            background-color: lightgrey; /* Даємо ледь сірий фон, щоб краще було видно жовтого пакмена */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="400" height="400"></canvas> <!-- Визначаємо канвас для гри -->
+    <script>
+        const canvas = document.getElementById('canvas'); // Отримуємо елемент canvas
+        const ctx = canvas.getContext('2d'); // Отримуємо контекст для малювання на canvas
+        
+        const cellSize = 40;  // Розмір клітинки в лабіринті
+        const rows = 10;      // Кількість рядків в лабіринті
+        const cols = 10;      // Кількість стовпців в лабіринті
+
+        // Лабіринт: 0 - вільний простір, 1 - стіна
+        const maze = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 0, 1, 1, 1, 0, 1],
+            [1, 0, 1, 0, 0, 0, 1, 0, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+            [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            [1, 0, 1, 0, 1, 1, 1, 0, 1, 1],
+            [1, 0, 0, 0, 1, 1, 0, 0, 1, 1],
+            [1, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+         
+        const apples = [
+            [60, 100],
+            [60, 140]
+        ]
+
+        let pacman = {
+            x: 1 * cellSize + cellSize / 2,  // Початкові координати Pac-Man (центр клітинки)
+            y: 1 * cellSize + cellSize / 2,
+            radius: 15, // Розмір Pac-Man
+            direction: 'right', // Початковий напрямок руху (право)
+            speed: cellSize  // Швидкість руху, рівна розміру клітинки
+        };
+
+        // Функція для малювання лабіринту
+        function drawMaze() {
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    if (maze[row][col] === 1) {
+                        ctx.fillStyle = 'black'; // Колір стін
+                        ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize); // Малюємо стіну
+                    }
+                }
+            }
+        };
+        // function apples() {
+        //     if (pacman in apple )
+        //     {apple delete}
+        // }
+        // Функція для малювання Pac-Man
+        function drawPacman() {
+            ctx.beginPath();  // Початок малювання фігури
+
+            // Початкові кути для відкриття рота (право)
+            let startAngle = 0.25 * Math.PI;
+            let endAngle = 1.75 * Math.PI;
+
+            // Якщо напрямок вліво, змінюємо кути відкриття рота
+            if (pacman.direction === 'left') {
+                startAngle = Math.PI + 0.25 * Math.PI;
+                endAngle = Math.PI + 1.75 * Math.PI;
+            }
+            if (pacman.direction === 'down') {
+                startAngle = 0.75 * Math.PI;
+                endAngle = 2.25 * Math.PI;
+            }
+            // Вгору
+            if (pacman.direction === 'up') {
+                startAngle = 1.75 * Math.PI;
+                endAngle = 3.25 * Math.PI;
+            }
+
+            // Малюємо Pac-Man з вказаними кутами
+            ctx.arc(pacman.x, pacman.y, pacman.radius, startAngle, endAngle);
+            ctx.lineTo(pacman.x, pacman.y);  // Завершуємо шлях до центру
+            ctx.fillStyle = 'yellow';  // Колір Pac-Man
+            ctx.fill();  // Заповнюємо фігуру
+            ctx.closePath();  // Завершуємо малювання
+
+            // Малюємо око
+            let eyeX = pacman.x - 5;
+            let eyeY = pacman.y - 5;
+
+            if (pacman.direction === 'right') {
+                eyeX = pacman.x - 5 ;
+                eyeY = pacman.y - 5;
+            }
+
+            if (pacman.direction === 'left') {
+                eyeX = pacman.x + 5;
+                eyeY = pacman.y - 5;
+            }
+
+            if (pacman.direction === 'up') {
+                eyeX = pacman.x - 5;
+                eyeY = pacman.y + 5;
+            }
+
+            if (pacman.direction === 'down') {
+                eyeX = pacman.x + 5;
+                eyeY = pacman.y - 5;
+            }
+
+            const eyeRadius = 3;
+
+            // Малюємо око
+            ctx.beginPath();
+            ctx.arc(eyeX, eyeY, eyeRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = 'black';  // Колір ока
+            ctx.fill();  // Заповнюємо око
+            ctx.closePath();  // Завершуємо малювання ока
+        };
+        function drawApple(appleX, appleY, ) {
+
+            ctx.beginPath();
+            ctx.arc(appleX, appleY, 15 , 0, 2 * Math.PI);
+            ctx.fillStyle = 'red';  
+            ctx.fill();  
+            
+            ctx.moveTo(appleX, appleY);
+            ctx.lineTo(appleX + 3, appleY + 5)
+            ctx.strokeStyle = 'brown';  
+            ctx.stroke();  
+            ctx.closePath();
+        }
+        // Функція для перевірки, чи можна зробити рух в нову позицію
+        function isValidMove(newX, newY) {
+            const gridX = Math.floor(newX / cellSize); // Переводимо координати в клітинки лабіринту
+            const gridY = Math.floor(newY / cellSize);
+            return maze[gridY] && maze[gridY][gridX] !== 1;  // Перевіряємо, чи клітинка не є стіною
+        };
+
+        // Оновлення гри
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Очищаємо канвас
+            drawMaze();  // Малюємо лабіринт
+            drawPacman(); // Малюємо Pac-Man
+
+            for(let i = 0; i < apples.length; i++){
+                drawApple(apples[i][0], apples[i][1], 5)
+            }
+
+            // Рух Pac-Man, залежно від напрямку
+            let newX = pacman.x;
+            let newY = pacman.y;
+
+            if (pacman.direction === 'right') newX += pacman.speed; // Рух вправо
+            if (pacman.direction === 'left') newX -= pacman.speed; // Рух вліво
+            if (pacman.direction === 'up') newY -= pacman.speed; // Рух вгору
+            if (pacman.direction === 'down') newY += pacman.speed; // Рух вниз
+
+            // Перевіряємо, чи можна перемістити Pac-Man в нову позицію
+            if (isValidMove(newX, newY)) {
+                pacman.x = newX;  // Оновлюємо координати
+                pacman.y = newY;
+            }
+        };
+
+        // Обробник клавіш для зміни напрямку руху
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowRight') pacman.direction = 'right'; // Якщо натиснута стрілка вправо
+            if (event.key === 'ArrowLeft') pacman.direction = 'left'; // Якщо натиснута стрілка вліво
+            if (event.key === 'ArrowUp') pacman.direction = 'up'; // Якщо натиснута стрілка вгору
+            if (event.key === 'ArrowDown') pacman.direction = 'down'; // Якщо натиснута стрілка вниз
+        });
+
+        // Використовуємо setInterval для періодичного оновлення гри
+        setInterval(update, 200); // Оновлення гри кожні 200 мілісекунд
+    </script>
+</body>
+</html>
